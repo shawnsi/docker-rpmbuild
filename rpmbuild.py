@@ -3,11 +3,12 @@
 """Docker rpmbuild.
 
 Usage:
-    docker-packager build [--source=<path>] <spec>
+    docker-packager --spec=<file> --source=<tarball> <image>
 
 Options:
     -h --help           Show this screen.
-    --source=<path>     Path to the directory containg a Dockerfile [default: .].
+    --source=<tarball>  Tarball containing package sources.
+    --spec=<file>       RPM Spec file to build.
 
 """
 
@@ -23,18 +24,19 @@ import docker
 client = docker.Client()
 
 template = """
-FROM centos
+FROM %s
 
-RUN yum -y localinstall http://mirror.rit.edu/epel/6/x86_64/epel-release-6-8.noarch.rpm
+ENV SOURCE %s
+ENV SPEC %s
+
 RUN yum -y install rpmdevtools yum-utils
 RUN rpmdev-setuptree
 
-ADD %s.spec /rpmbuild/SPECS/
-RUN chown root:root /rpmbuild/SPECS/%s.spec
-RUN yum-builddep -y /rpmbuild/SPECS/%s.spec
-ADD . /tmp/sources
-RUN chown -R root:root /tmp/sources
-RUN tar -C /tmp/sources -czvf /rpmbuild/SOURCES/%s-0.0.1.tar.gz --exclude .git .
+ADD $SOURCE /rpmbuild/SOURCES/$SOURCE
+Run chown root:root /rpmbuild/SOURCES/$SOURCE
+ADD $SPEC /rpmbuild/SPECS/$SPEC
+RUN chown root:root /rpmbuild/SPECS/$SPEC
+RUN yum-builddep -y /rpmbuild/SPECS/$SPEC
 """
 
 class PackagerException(Exception):
@@ -42,29 +44,28 @@ class PackagerException(Exception):
 
 class Packager(object):
 
-    def __init__(self, source):
-        self.source = source
-        self.temp = tempfile.mkdtemp()
-        self.context = os.path.join(self.temp, 'context')
+    def __init__(self, image):
+        self.image = image
 
     def __enter__(self):
-        shutil.copytree(self.source, self.context)
+        self.context = tempfile.mkdtemp()
         return self
 
     def __exit__(self, type, value, traceback):
-        shutil.rmtree(self.temp)
+        shutil.rmtree(self.context)
 
     def __str__(self):
         return self.image
 
-    def create_dockerfile(self, spec):
-        name, extension = os.path.splitext(spec)
-        dockerfile = template % (name, name, name, name)
+    def prepare_context(self, source, spec):
+        shutil.copy(source, self.context)
+        shutil.copy(spec, self.context)
+        dockerfile = template % (self.image, source, spec)
         with open(os.path.join(self.context, 'Dockerfile'), 'w') as f:
             f.write(dockerfile)
 
-    def build(self, spec):
-        self.create_dockerfile(spec)
+    def build(self, source, spec):
+        self.prepare_context(source, spec)
         self.image, logs = client.build(self.context)
         print logs
 
@@ -83,14 +84,13 @@ class Packager(object):
 def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
 
-    if args['build']:
-        try:
-            with Packager(args['--source']) as p:
-                p.build(args['<spec>'])
+    try:
+        with Packager(args['<image>']) as p:
+            p.build(args['--source'].strip(), args['--spec'].strip())
 
-        except PackagerException:
-            print >> sys.stderr, 'Container build failed!'
-            sys.exit(1)
+    except PackagerException:
+        print >> sys.stderr, 'Container build failed!'
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
