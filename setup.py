@@ -9,6 +9,7 @@ setup(
     author_email = 'shawn.siefkas@meredith.com',
     description = 'Docker + rpmbuild = distributable',
     install_requires = [
+        'docker-py',
         'docopt',
     ],
     entry_points = {
