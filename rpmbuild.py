@@ -59,13 +59,22 @@ class Packager(object):
         return self.image
 
     def export_package(self, output):
+        """
+        Finds RPMs build in the container and copies to host output directory.
+        """
         for diff in client.diff(self.container):
             if diff['Path'].startswith('/rpmbuild'):
                 if diff['Path'].endswith('.rpm'):
                     resource = '%s:%s' % (self.container['Id'], diff['Path'])
+                    # docker-py copy method is currently not working
                     check_call(['docker', 'cp', resource, output])
 
     def prepare_context(self, source, spec):
+        """
+        Setup context for docker container build.  Copies the source tarball
+        and SPEC file to the context directory.  Writes a Dockerfile from the
+        template above.
+        """
         shutil.copy(source, self.context)
         shutil.copy(spec, self.context)
         dockerfile = template % (self.image, source, spec)
@@ -73,6 +82,9 @@ class Packager(object):
             f.write(dockerfile)
 
     def build(self, source, spec, output):
+        """
+        Build the RPM package on top of the provided image.
+        """
         self.prepare_context(source, spec)
         self.image, logs = client.build(self.context)
         print logs
