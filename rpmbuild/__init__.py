@@ -79,8 +79,10 @@ class Packager(object):
             if diff['Path'].startswith('/rpmbuild'):
                 if diff['Path'].endswith('.rpm'):
                     resource = '%s:%s' % (self.container['Id'], diff['Path'])
-                    # docker-py copy method is currently not working
-                    check_call(['docker', 'cp', resource, output])
+                    directory, name = os.path.split(diff['Path'])
+                    res = client.copy(self.container['Id'], diff['Path'])
+                    with open(os.path.join(output, name), 'w') as f:
+                        f.write(res.read()[512:])
 
     def build(self):
         """
