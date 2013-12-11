@@ -13,9 +13,9 @@ setup(
         'docopt',
     ],
     entry_points = {
-        'console_scripts': ['docker-rpmbuild = rpmbuild:main']
+        'console_scripts': ['docker-rpmbuild = rpmbuild.build:main']
     },
-    py_modules=['rpmbuild']
+    packages=['rpmbuild'],
 )
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
