@@ -24,7 +24,7 @@ Docker wrapper for rpmbuild.
 
 %files
 /usr/bin/docker-rpmbuild
-%{python_sitelib}/rpmbuild.py*
+%{python_sitelib}/rpmbuild*
 %{python_sitelib}/docker_rpmbuild-*.egg-info
 
 %changelog
