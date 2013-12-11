@@ -16,14 +16,15 @@ Options:
 import sys
 
 from docopt import docopt
-from rpmbuild import Packager, PackagerException
+from rpmbuild import Packager, PackagerContext, PackagerException
 
 def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
 
+    context = PackagerContext(args['<image>'], args['--source'], args['--spec'], args['--output'])
     try:
-        with Packager(args['<image>']) as p:
-            p.build(args['--source'], args['--spec'], args['--output'])
+        with Packager(context) as p:
+            p.build()
 
     except PackagerException:
         print >> sys.stderr, 'Container build failed!'
