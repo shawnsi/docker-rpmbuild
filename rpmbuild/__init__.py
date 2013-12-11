@@ -86,13 +86,19 @@ class Packager(object):
         """
         Build the RPM package on top of the provided image.
         """
-        self.image, logs = client.build(self.context.path)
-        print logs
+        logs = client.build(self.context.path, tag='rpmbuild-%s' % self.context.spec, stream=True)
 
-        if not self.image:
+        for line in logs:
+            print line.strip()
+
+        images = client.images(name='rpmbuild-%s' % self.context.spec)
+
+        if not images:
             raise PackagerException
 
-        self.container = client.create_container(self.image,
+        image = images[0]
+
+        self.container = client.create_container(image['Id'],
                 'rpmbuild -ba %s' % os.path.join('/rpmbuild/SPECS', self.context.spec))
         client.start(self.container)
         client.wait(self.container)
