@@ -9,6 +9,7 @@ import docker
 
 client = docker.Client()
 
+
 class PackagerContext(object):
     template = """
     FROM %s
@@ -56,6 +57,7 @@ class PackagerContext(object):
 class PackagerException(Exception):
     pass
 
+
 class Packager(object):
 
     def __init__(self, context):
@@ -78,7 +80,6 @@ class Packager(object):
         for diff in client.diff(self.container):
             if diff['Path'].startswith('/rpmbuild'):
                 if diff['Path'].endswith('.rpm'):
-                    resource = '%s:%s' % (self.container['Id'], diff['Path'])
                     directory, name = os.path.split(diff['Path'])
                     res = client.copy(self.container['Id'], diff['Path'])
                     with open(os.path.join(output, name), 'w') as f:
@@ -88,7 +89,11 @@ class Packager(object):
         """
         Build the RPM package on top of the provided image.
         """
-        logs = client.build(self.context.path, tag='rpmbuild-%s' % self.context.spec, stream=True)
+        logs = client.build(
+            self.context.path,
+            tag='rpmbuild-%s' % self.context.spec,
+            stream=True
+        )
 
         for line in logs:
             print line.strip()
@@ -100,8 +105,10 @@ class Packager(object):
 
         image = images[0]
 
-        self.container = client.create_container(image['Id'],
-                'rpmbuild -ba %s' % os.path.join('/rpmbuild/SPECS', self.context.spec))
+        specfile = os.path.join('/rpmbuild/SPECS', self.context.spec)
+        rpmbuild = 'rpmbuild -ba %s' % specfile
+        self.container = client.create_container(image['Id'], rpmbuild)
+
         client.start(self.container)
         client.wait(self.container)
 
@@ -111,4 +118,3 @@ class Packager(object):
         self.export_package(self.context.output)
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
-

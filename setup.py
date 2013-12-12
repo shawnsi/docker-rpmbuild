@@ -3,17 +3,17 @@
 from setuptools import setup
 
 setup(
-    name = 'docker-rpmbuild',
-    version = '0.0.1',
-    author = 'Shawn Siefkas',
-    author_email = 'shawn.siefkas@meredith.com',
-    description = 'Docker + rpmbuild = distributable',
-    install_requires = [
+    name='docker-rpmbuild',
+    version='0.0.1',
+    author='Shawn Siefkas',
+    author_email='shawn.siefkas@meredith.com',
+    description='Docker + rpmbuild=distributable',
+    install_requires=[
         'docker-py',
         'docopt',
     ],
-    entry_points = {
-        'console_scripts': ['docker-rpmbuild = rpmbuild.build:main']
+    entry_points={
+        'console_scripts': ['docker-rpmbuild=rpmbuild.build:main']
     },
     packages=['rpmbuild'],
 )
