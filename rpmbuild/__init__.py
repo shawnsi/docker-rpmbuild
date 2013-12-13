@@ -3,7 +3,6 @@
 import os.path
 import shutil
 import tempfile
-from subprocess import check_call
 
 import docker
 
@@ -110,10 +109,8 @@ class Packager(object):
         self.container = client.create_container(image['Id'], rpmbuild)
 
         client.start(self.container)
+        print client.logs(self.container)
         client.wait(self.container)
-
-        # Hack until https://github.com/dotcloud/docker-py/pull/105 is merged
-        check_call(['docker', 'logs', self.container['Id']])
 
         self.export_package(self.context.output)
 
