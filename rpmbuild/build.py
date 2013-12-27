@@ -23,10 +23,21 @@ def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
 
     context = PackagerContext(
-        args['<image>'], args['--source'], args['--spec'], args['--output'])
+        args['<image>'], args['--source'], args['--spec'])
+
     try:
         with Packager(context) as p:
-            p.build()
+            image, logs = p.build_image()
+
+            for line in logs:
+                print line.strip()
+
+            container, logs = p.build_package(image)
+
+            for line in logs:
+                print line
+
+            p.export_package(args['--output'])
 
     except PackagerException:
         print >> sys.stderr, 'Container build failed!'

@@ -26,11 +26,10 @@ class PackagerContext(object):
     RUN yum-builddep -y /rpmbuild/SPECS/$SPEC
     """
 
-    def __init__(self, image, source, spec, output):
+    def __init__(self, image, source, spec):
         self.image = image
         self.source = source
         self.spec = spec
-        self.output = output
 
     def __str__(self):
         return self.path
@@ -84,34 +83,35 @@ class Packager(object):
                     with open(os.path.join(output, name), 'w') as f:
                         f.write(res.read()[512:])
 
-    def build(self):
-        """
-        Build the RPM package on top of the provided image.
-        """
+    def build_image(self):
         logs = client.build(
             self.context.path,
-            tag='rpmbuild-%s' % self.context.spec,
+            tag=self.image_name,
             stream=True
         )
 
-        for line in logs:
-            print line.strip()
-
-        images = client.images(name='rpmbuild-%s' % self.context.spec)
+        images = client.images(name=self.image_name)
 
         if not images:
             raise PackagerException
 
         image = images[0]
 
+        return (image, logs)
+
+    @property
+    def image_name(self):
+        return 'rpmbuild-%s' % self.context.spec
+
+    def build_package(self, image):
+        """
+        Build the RPM package on top of the provided image.
+        """
         specfile = os.path.join('/rpmbuild/SPECS', self.context.spec)
         rpmbuild = 'rpmbuild -ba %s' % specfile
         self.container = client.create_container(image['Id'], rpmbuild)
 
         client.start(self.container)
-        print client.logs(self.container)
-        client.wait(self.container)
-
-        self.export_package(self.context.output)
+        return self.container, client.logs(self.container, stream=True)
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
