@@ -20,18 +20,33 @@ class PackagerContext(object):
     {% for source in sources %}
     ADD {{ source }} /rpmbuild/SOURCES/{{ source }}
     {% endfor %}
+
+    {% if spec %}
     ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
+    {% endif %}
+
+    {% if srpm %}
+    ADD {{ srpm }} /rpmbuild/SRPMS/{{ srpm }}
+    {% endif %}
+
     RUN chown -R root:root /rpmbuild
+
+    {% if spec %}
     RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
+    {% endif %}
     """)
 
-    def __init__(self, image, sources, spec):
+    def __init__(self, image, sources=None, spec=None, srpm=None):
         self.image = image
         self.sources = sources
         self.spec = spec
+        self.srpm = srpm
+
+        if not sources:
+            self.sources = []
 
     def __str__(self):
-        return self.path
+        return self.spec or self.srpm
 
     def setup(self):
         """
@@ -45,12 +60,18 @@ class PackagerContext(object):
         for source in self.sources:
             shutil.copy(source, self.path)
 
-        shutil.copy(self.spec, self.path)
+        if self.spec:
+            shutil.copy(self.spec, self.path)
+
+        if self.srpm:
+            shutil.copy(self.srpm, self.path)
+
         with open(self.dockerfile, 'w') as f:
             content = self.template.render(
                 image=self.image,
                 sources=self.sources,
-                spec=self.spec
+                spec=self.spec,
+                srpm=self.srpm
             )
             f.write(content)
 
@@ -89,33 +110,39 @@ class Packager(object):
                     with open(os.path.join(output, name), 'w') as f:
                         f.write(res.read()[512:])
 
-    def build_image(self):
-        logs = client.build(
-            self.context.path,
-            tag=self.image_name,
-            stream=True
-        )
+    @property
+    def image_name(self):
+        return 'rpmbuild-%s' % self.context
 
+    @property
+    def image(self):
         images = client.images(name=self.image_name)
 
         if not images:
             raise PackagerException
 
-        image = images[0]
+        return images[0]
 
-        return (image, logs)
+    def build_image(self):
+        return client.build(
+            self.context.path,
+            tag=self.image_name,
+            stream=True
+        )
 
-    @property
-    def image_name(self):
-        return 'rpmbuild-%s' % self.context.spec
-
-    def build_package(self, image):
+    def build_package(self):
         """
         Build the RPM package on top of the provided image.
         """
-        specfile = os.path.join('/rpmbuild/SPECS', self.context.spec)
-        rpmbuild = 'rpmbuild -ba %s' % specfile
-        self.container = client.create_container(image['Id'], rpmbuild)
+        if self.context.spec:
+            specfile = os.path.join('/rpmbuild/SPECS', self.context.spec)
+            rpmbuild = 'rpmbuild -ba %s' % specfile
+
+        if self.context.srpm:
+            srpm = os.path.join('/rpmbuild/SRPMS', self.context.srpm)
+            rpmbuild = 'rpmbuild --rebuild %s' % srpm
+
+        self.container = client.create_container(self.image['Id'], rpmbuild)
 
         client.start(self.container)
         return self.container, client.logs(self.container, stream=True)

@@ -3,13 +3,16 @@
 """Docker rpmbuild.
 
 Usage:
-    docker-packager --spec=<file> --source=<tarball>... [--output=<path>] <image>
+    docker-packager build --spec=<file> --source=<tarball>...
+        [--output=<path>] <image>
+    docker-packager rebuild --srpm=<file> [--output=<path>] <image>
 
 Options:
     -h --help           Show this screen.
     --output=<path>     Output directory for RPMs [default: .].
     --source=<tarball>  Tarball containing package sources.
     --spec=<file>       RPM Spec file to build.
+    --srpm=<file>       SRPM to rebuild.
 
 """
 
@@ -22,20 +25,30 @@ from rpmbuild import Packager, PackagerContext, PackagerException
 def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
 
-    context = PackagerContext(
-        args['<image>'], args['--source'], args['--spec'])
+    print args
+
+    if args['build']:
+        context = PackagerContext(
+            args['<image>'],
+            sources=args['--source'],
+            spec=args['--spec'],
+        )
+
+    if args['rebuild']:
+        context = PackagerContext(
+            args['<image>'],
+            srpm=args['--srpm']
+        )
 
     try:
         with Packager(context) as p:
-            image, logs = p.build_image()
+            for line in p.build_image():
+                print line.strip()
+
+            container, logs = p.build_package()
 
             for line in logs:
                 print line.strip()
-
-            container, logs = p.build_package(image)
-
-            for line in logs:
-                print line
 
             p.export_package(args['--output'])
 
