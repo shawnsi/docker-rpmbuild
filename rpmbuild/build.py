@@ -3,7 +3,7 @@
 """Docker rpmbuild.
 
 Usage:
-    docker-packager --spec=<file> --source=<tarball> [--output=<path>] <image>
+    docker-packager --spec=<file> --source=<tarball>... [--output=<path>] <image>
 
 Options:
     -h --help           Show this screen.

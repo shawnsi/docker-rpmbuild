@@ -11,6 +11,7 @@ setup(
     install_requires=[
         'docker-py>=0.2.3',
         'docopt==0.6.1',
+        'Jinja2==2.6',
     ],
     entry_points={
         'console_scripts': ['docker-rpmbuild=rpmbuild.build:main']

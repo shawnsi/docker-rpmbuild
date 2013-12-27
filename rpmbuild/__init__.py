@@ -4,31 +4,30 @@ import os.path
 import shutil
 import tempfile
 
+from jinja2 import Template
 import docker
 
 client = docker.Client()
 
 
 class PackagerContext(object):
-    template = """
-    FROM %s
-
-    ENV SOURCE %s
-    ENV SPEC %s
+    template = Template("""
+    FROM {{ image }}
 
     RUN yum -y install rpmdevtools yum-utils
     RUN rpmdev-setuptree
 
-    ADD $SOURCE /rpmbuild/SOURCES/$SOURCE
-    Run chown root:root /rpmbuild/SOURCES/$SOURCE
-    ADD $SPEC /rpmbuild/SPECS/$SPEC
-    RUN chown root:root /rpmbuild/SPECS/$SPEC
-    RUN yum-builddep -y /rpmbuild/SPECS/$SPEC
-    """
+    {% for source in sources %}
+    ADD {{ source }} /rpmbuild/SOURCES/{{ source }}
+    {% endfor %}
+    ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
+    RUN chown -R root:root /rpmbuild
+    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
+    """)
 
-    def __init__(self, image, source, spec):
+    def __init__(self, image, sources, spec):
         self.image = image
-        self.source = source
+        self.sources = sources
         self.spec = spec
 
     def __str__(self):
@@ -42,10 +41,17 @@ class PackagerContext(object):
         """
         self.path = tempfile.mkdtemp()
         self.dockerfile = os.path.join(self.path, 'Dockerfile')
-        shutil.copy(self.source, self.path)
+
+        for source in self.sources:
+            shutil.copy(source, self.path)
+
         shutil.copy(self.spec, self.path)
         with open(self.dockerfile, 'w') as f:
-            content = self.template % (self.image, self.source, self.spec)
+            content = self.template.render(
+                image=self.image,
+                sources=self.sources,
+                spec=self.spec
+            )
             f.write(content)
 
     def teardown(self):
