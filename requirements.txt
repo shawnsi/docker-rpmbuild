@@ -1,0 +1,2 @@
+-e git://github.com/dotcloud/docker-py.git@4bc4ee3cf006e0262a514fbd3f9a103d9f37f8c0#egg=docker_py-dev
+docopt==0.6.1

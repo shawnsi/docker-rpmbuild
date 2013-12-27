@@ -9,8 +9,8 @@ setup(
     author_email='shawn.siefkas@meredith.com',
     description='Docker + rpmbuild=distributable',
     install_requires=[
-        'docker-py',
-        'docopt',
+        'docker-py>=0.2.4',
+        'docopt==0.6.1',
     ],
     entry_points={
         'console_scripts': ['docker-rpmbuild=rpmbuild.build:main']
