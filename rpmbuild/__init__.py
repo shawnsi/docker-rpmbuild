@@ -19,21 +19,22 @@ class PackagerContext(object):
 
     {% for source in sources %}
     ADD {{ source }} /rpmbuild/SOURCES/{{ source }}
+    RUN chown -R root:root /rpmbuild/SOURCES
     {% endfor %}
 
     {% if spec %}
     ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
+    RUN chown -R root:root /rpmbuild/SPECS
+    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
+    CMD rpmbuild -ba /rpmbuild/SPECS/{{ spec }}
     {% endif %}
 
     {% if srpm %}
     ADD {{ srpm }} /rpmbuild/SRPMS/{{ srpm }}
+    RUN chown -R root:root /rpmbuild/SRPMS
+    CMD rpmbuild --rebuild /rpmbuild/SRPMS/{{ srpm }}
     {% endif %}
 
-    RUN chown -R root:root /rpmbuild
-
-    {% if spec %}
-    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
-    {% endif %}
     """)
 
     def __init__(self, image, sources=None, spec=None, srpm=None):
@@ -69,9 +70,9 @@ class PackagerContext(object):
         with open(self.dockerfile, 'w') as f:
             content = self.template.render(
                 image=self.image,
-                sources=self.sources,
-                spec=self.spec,
-                srpm=self.srpm
+                sources=[os.path.basename(s) for s in self.sources],
+                spec=self.spec and os.path.basename(self.spec),
+                srpm=self.srpm and os.path.basename(self.srpm),
             )
             f.write(content)
 
@@ -134,16 +135,7 @@ class Packager(object):
         """
         Build the RPM package on top of the provided image.
         """
-        if self.context.spec:
-            specfile = os.path.join('/rpmbuild/SPECS', self.context.spec)
-            rpmbuild = 'rpmbuild -ba %s' % specfile
-
-        if self.context.srpm:
-            srpm = os.path.join('/rpmbuild/SRPMS', self.context.srpm)
-            rpmbuild = 'rpmbuild --rebuild %s' % srpm
-
-        self.container = client.create_container(self.image['Id'], rpmbuild)
-
+        self.container = client.create_container(self.image['Id'])
         client.start(self.container)
         return self.container, client.logs(self.container, stream=True)
 

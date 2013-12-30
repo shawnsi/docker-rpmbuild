@@ -25,8 +25,6 @@ from rpmbuild import Packager, PackagerContext, PackagerException
 def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
 
-    print args
-
     if args['build']:
         context = PackagerContext(
             args['<image>'],
