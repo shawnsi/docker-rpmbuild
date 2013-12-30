@@ -103,6 +103,8 @@ class Packager(object):
         """
         Finds RPMs build in the container and copies to host output directory.
         """
+        exported = []
+
         for diff in client.diff(self.container):
             if diff['Path'].startswith('/rpmbuild'):
                 if diff['Path'].endswith('.rpm'):
@@ -110,6 +112,9 @@ class Packager(object):
                     res = client.copy(self.container['Id'], diff['Path'])
                     with open(os.path.join(output, name), 'w') as f:
                         f.write(res.read()[512:])
+                        exported.append(f.name)
+
+        return exported
 
     @property
     def image_name(self):

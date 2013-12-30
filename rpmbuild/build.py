@@ -48,7 +48,8 @@ def main():
             for line in logs:
                 print line.strip()
 
-            p.export_package(args['--output'])
+            for path in p.export_package(args['--output']):
+                print 'Wrote: %s' % path
 
     except PackagerException:
         print >> sys.stderr, 'Container build failed!'
