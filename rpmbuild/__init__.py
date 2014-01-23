@@ -26,7 +26,7 @@ class PackagerContext(object):
     ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
     RUN chown -R root:root /rpmbuild/SPECS
     RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
-    CMD rpmbuild -ba /rpmbuild/SPECS/{{ spec }}
+    CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
     {% endif %}
 
     {% if srpm %}
@@ -37,11 +37,15 @@ class PackagerContext(object):
 
     """)
 
-    def __init__(self, image, sources=None, spec=None, srpm=None):
+    def __init__(self, image, defines=None, sources=None, spec=None, srpm=None):
         self.image = image
+        self.defines = defines
         self.sources = sources
         self.spec = spec
         self.srpm = srpm
+
+        if not defines:
+            self.defines = []
 
         if not sources:
             self.sources = []
@@ -70,6 +74,7 @@ class PackagerContext(object):
         with open(self.dockerfile, 'w') as f:
             content = self.template.render(
                 image=self.image,
+                defines=self.defines,
                 sources=[os.path.basename(s) for s in self.sources],
                 spec=self.spec and os.path.basename(self.spec),
                 srpm=self.srpm and os.path.basename(self.srpm),

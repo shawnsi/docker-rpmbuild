@@ -3,12 +3,13 @@
 """Docker rpmbuild.
 
 Usage:
-    docker-packager build --spec=<file> --source=<tarball>...
+    docker-packager build [--define=<option>...] --spec=<file> --source=<tarball>...
         [--output=<path>] <image>
     docker-packager rebuild --srpm=<file> [--output=<path>] <image>
 
 Options:
     -h --help           Show this screen.
+    --define=<option>   Pass a macro to rpmbuild.
     --output=<path>     Output directory for RPMs [default: .].
     --source=<tarball>  Tarball containing package sources.
     --spec=<file>       RPM Spec file to build.
@@ -28,6 +29,7 @@ def main():
     if args['build']:
         context = PackagerContext(
             args['<image>'],
+            defines=args['--define'],
             sources=args['--source'],
             spec=args['--spec'],
         )
