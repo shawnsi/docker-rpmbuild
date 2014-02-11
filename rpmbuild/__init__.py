@@ -145,7 +145,7 @@ class Packager(object):
         """
         Build the RPM package on top of the provided image.
         """
-        self.container = client.create_container(self.image['Id'])
+        self.container = client.create_container(self.image['Repository'])
         client.start(self.container)
         return self.container, client.logs(self.container, stream=True)
 
