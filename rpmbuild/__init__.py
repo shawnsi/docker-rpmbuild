@@ -7,7 +7,7 @@ import tempfile
 from jinja2 import Template
 import docker
 
-client = docker.Client()
+client = docker.Client(timeout=0)
 
 
 class PackagerContext(object):
