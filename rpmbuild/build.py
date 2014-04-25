@@ -17,6 +17,9 @@ Options:
 
 """
 
+from __future__ import print_function
+
+import json
 import sys
 
 from docopt import docopt
@@ -43,18 +46,19 @@ def main():
     try:
         with Packager(context) as p:
             for line in p.build_image():
-                print line.strip()
+                parsed = json.loads(line.decode(encoding='UTF-8'))
+                print(parsed['stream'].strip())
 
             container, logs = p.build_package()
 
             for line in logs:
-                print line.strip()
+                print(line.decode(encoding='UTF-8').strip())
 
             for path in p.export_package(args['--output']):
-                print 'Wrote: %s' % path
+                print('Wrote: %s' % path)
 
     except PackagerException:
-        print >> sys.stderr, 'Container build failed!'
+        print('Container build failed!', file=sys.stderr)
         sys.exit(1)
 
 if __name__ == '__main__':

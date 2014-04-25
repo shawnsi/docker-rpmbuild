@@ -9,7 +9,7 @@ setup(
     author_email='shawn.siefkas@meredith.com',
     description='Docker + rpmbuild=distributable',
     install_requires=[
-        'docker-py==0.3.0',
+        'docker-py==0.3.1',
         'docopt>=0.6.1',
         'Jinja2>=2.6',
     ],

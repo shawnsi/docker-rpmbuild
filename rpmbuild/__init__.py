@@ -7,10 +7,12 @@ import tempfile
 from jinja2 import Template
 import docker
 
-client = docker.Client(timeout=0)
+client = docker.Client(timeout=600)
 
 
 class PackagerContext(object):
+    # Hacking up the unintentional tarball unpack
+    # https://github.com/dotcloud/docker/issues/3050
     template = Template("""
     FROM {{ image }}
 
@@ -18,7 +20,8 @@ class PackagerContext(object):
     RUN rpmdev-setuptree
 
     {% for source in sources %}
-    ADD {{ source }} /rpmbuild/SOURCES/{{ source }}
+    ADD {{ source }} /rpmbuild/SOURCES/{{ source }}.unpack
+    RUN cd /rpmbuild/SOURCES/{{ source }}.unpack && tar czf /rpmbuild/SOURCES/{{ source }} .
     RUN chown -R root:root /rpmbuild/SOURCES
     {% endfor %}
 
@@ -115,7 +118,7 @@ class Packager(object):
                 if diff['Path'].endswith('.rpm'):
                     directory, name = os.path.split(diff['Path'])
                     res = client.copy(self.container['Id'], diff['Path'])
-                    with open(os.path.join(output, name), 'w') as f:
+                    with open(os.path.join(output, name), 'wb') as f:
                         f.write(res.read()[512:])
                         exported.append(f.name)
 
@@ -145,7 +148,7 @@ class Packager(object):
         """
         Build the RPM package on top of the provided image.
         """
-        self.container = client.create_container(self.image['Repository'])
+        self.container = client.create_container(self.image['Id'])
         client.start(self.container)
         return self.container, client.logs(self.container, stream=True)
 
