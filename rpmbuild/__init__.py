@@ -16,7 +16,7 @@ class PackagerContext(object):
     template = Template("""
     FROM {{ image }}
 
-    RUN yum -y install rpmdevtools yum-utils
+    RUN yum -y install rpmdevtools yum-utils tar
     RUN rpmdev-setuptree
 
     {% for source in sources %}
