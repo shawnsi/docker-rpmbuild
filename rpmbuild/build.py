@@ -3,18 +3,21 @@
 """Docker rpmbuild.
 
 Usage:
-    docker-packager build [--define=<option>...] --spec=<file> --source=<tarball>...
-        [--output=<path>] <image>
+    docker-packager build [--define=<option>...]
+                          (--source=<tarball>...|--sources-dir=<dir>)
+                          (--spec=<file> [--retrieve] [--output=<path>]) 
+                          <image>
     docker-packager rebuild --srpm=<file> [--output=<path>] <image>
 
 Options:
-    -h --help           Show this screen.
-    --define=<option>   Pass a macro to rpmbuild.
-    --output=<path>     Output directory for RPMs [default: .].
-    --source=<tarball>  Tarball containing package sources.
-    --spec=<file>       RPM Spec file to build.
-    --srpm=<file>       SRPM to rebuild.
-
+    -h --help            Show this screen.
+    --define=<option>    Pass a macro to rpmbuild.
+    --output=<path>      Output directory for RPMs [default: .].
+    --source=<tarball>   Tarball containing package sources.
+    --sources-dir=<dir>  Directory containing resources required for spec.
+    -r --retrieve        Fetch defined resources in spec file with spectool inside container
+    --spec=<file>        RPM Spec file to build.
+    --srpm=<file>        SRPM to rebuild.
 """
 
 from __future__ import print_function
@@ -34,7 +37,9 @@ def main():
             args['<image>'],
             defines=args['--define'],
             sources=args['--source'],
+            sources_dir=args['--sources-dir'],
             spec=args['--spec'],
+            retrieve=args['--retrieve'],
         )
 
     if args['rebuild']:

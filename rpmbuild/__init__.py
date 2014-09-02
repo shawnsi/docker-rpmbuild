@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os.path
+import os
 import shutil
 import tempfile
 
@@ -19,6 +19,9 @@ class PackagerContext(object):
     RUN yum -y install rpmdevtools yum-utils tar
     RUN rpmdev-setuptree
 
+    {% if sources_dir is not none %}
+    ADD SOURCES /rpmbuild/SOURCES
+    {% endif %}
     {% for source in sources %}
     ADD {{ source }} /rpmbuild/SOURCES/{{ source }}.unpack
     RUN cd /rpmbuild/SOURCES/{{ source }}.unpack && tar czf /rpmbuild/SOURCES/{{ source }} .
@@ -29,6 +32,9 @@ class PackagerContext(object):
     ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
     RUN chown -R root:root /rpmbuild/SPECS
     RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
+    {% if retrieve %}
+    RUN spectool -g -R -A /rpmbuild/SPECS/{{ spec }}
+    {% endif %}
     CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
     {% endif %}
 
@@ -40,21 +46,30 @@ class PackagerContext(object):
 
     """)
 
-    def __init__(self, image, defines=None, sources=None, spec=None, srpm=None):
+    def __init__(self, image, defines=None, sources=None, sources_dir=None,
+                 spec=None, retrieve=None, srpm=None):
         self.image = image
         self.defines = defines
         self.sources = sources
         self.spec = spec
         self.srpm = srpm
+        self.retrieve = retrieve
 
         if not defines:
             self.defines = []
 
         if not sources:
             self.sources = []
+ 
+        if sources_dir and os.path.exists(sources_dir):
+            self.sources_dir = sources_dir
+        else:
+            self.sources_dir = None
+ 
 
     def __str__(self):
         return self.spec or self.srpm
+
 
     def setup(self):
         """
@@ -74,12 +89,18 @@ class PackagerContext(object):
         if self.srpm:
             shutil.copy(self.srpm, self.path)
 
+        if self.sources_dir:
+            shutil.copytree(self.sources_dir,
+                            os.path.join(self.path, 'SOURCES'))
+        
         with open(self.dockerfile, 'w') as f:
             content = self.template.render(
                 image=self.image,
                 defines=self.defines,
                 sources=[os.path.basename(s) for s in self.sources],
+                sources_dir=self.sources_dir,
                 spec=self.spec and os.path.basename(self.spec),
+                retrieve=self.retrieve,
                 srpm=self.srpm and os.path.basename(self.srpm),
             )
             f.write(content)
