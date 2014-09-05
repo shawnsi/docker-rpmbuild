@@ -52,6 +52,8 @@ def main():
         with Packager(context) as p:
             for line in p.build_image():
                 parsed = json.loads(line.decode(encoding='UTF-8'))
+                if 'stream' not in parsed:
+                    print(parsed)
                 print(parsed['stream'].strip())
 
             container, logs = p.build_package()
