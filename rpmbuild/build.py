@@ -3,14 +3,24 @@
 """Docker rpmbuild.
 
 Usage:
-    docker-packager build [--define=<option>...]
+    docker-packager build [--config=<file>]
+                          [--docker-base_url=<url>]
+                          [--docker-timeout=<seconds>]
+                          [--docker-version=<version>]
+                          [--define=<option>...]
                           (--source=<tarball>...|--sources-dir=<dir>)
                           (--spec=<file> [--retrieve] [--output=<path>]) 
                           <image>
-    docker-packager rebuild --srpm=<file> [--output=<path>] <image>
+    docker-packager rebuild [--config=<file>]
+                            [--docker-base_url=<url>]
+                            [--docker-timeout=<seconds>]
+                            [--docker-version=<version>]
+                            (--srpm=<file> [--output=<path>])
+                            <image>
 
 Options:
     -h --help            Show this screen.
+    --config=<file>      Configuration file [default: /etc/docker-packager/rpmbuild.ini]
     --define=<option>    Pass a macro to rpmbuild.
     --output=<path>      Output directory for RPMs [default: .].
     --source=<tarball>   Tarball containing package sources.
@@ -18,15 +28,24 @@ Options:
     -r --retrieve        Fetch defined resources in spec file with spectool inside container
     --spec=<file>        RPM Spec file to build.
     --srpm=<file>        SRPM to rebuild.
+
+Docker Options:
+    --docker-base_url=<url>     protocol+hostname+port towards docker
+                                (example: unix://var/run/docker.sock)
+    --docker-timeout=<seconds>  HTTP request timeout in seconds towards docker API. (default: 600)
+    --docker-version=<version>  API version the docker client will use towards
+                                docker (example: 1.12)
 """
 
 from __future__ import print_function
 
 import json
+import os
 import sys
 
 from docopt import docopt
 from rpmbuild import Packager, PackagerContext, PackagerException
+from rpmbuild.config import get_docker_config
 
 
 def main():
@@ -49,12 +68,13 @@ def main():
         )
 
     try:
-        with Packager(context) as p:
+        with Packager(context,  get_docker_config(args)) as p:
             for line in p.build_image():
                 parsed = json.loads(line.decode(encoding='UTF-8'))
                 if 'stream' not in parsed:
                     print(parsed)
-                print(parsed['stream'].strip())
+                else:
+                    print(parsed['stream'].strip())
 
             container, logs = p.build_package()
 
