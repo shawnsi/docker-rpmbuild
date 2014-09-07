@@ -32,10 +32,10 @@ class PackagerContext(object):
     {% endfor %}
     ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
     RUN chown -R root:root /rpmbuild/SPECS
-    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
     {% if retrieve %}
     RUN spectool -g -R -A /rpmbuild/SPECS/{{ spec }}
     {% endif %}
+    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
     CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
     {% endif %}
 
