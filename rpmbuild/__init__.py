@@ -21,21 +21,23 @@ class PackagerContext(object):
 
     {% for source in sources %}
     ADD {{ source }} /rpmbuild/SOURCES/{{ source }}.unpack
-    RUN cd /rpmbuild/SOURCES/{{ source }}.unpack && tar czf /rpmbuild/SOURCES/{{ source }} .
-    RUN chown -R root:root /rpmbuild/SOURCES
+    RUN cd /rpmbuild/SOURCES/{{ source }}.unpack && tar czf $HOME/rpmbuild/SOURCES/{{ source }} .
+    RUN chown -R root:root $HOME/rpmbuild/SOURCES
     {% endfor %}
 
     {% if spec %}
     ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
-    RUN chown -R root:root /rpmbuild/SPECS
-    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
-    CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
+    RUN mv /rpmbuild/SPECS/{{ spec }} $HOME/rpmbuild/SPECS/{{ spec }}
+    RUN chown -R root:root $HOME/rpmbuild/SPECS
+    RUN yum-builddep -y $HOME/rpmbuild/SPECS/{{ spec }}
+    CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba $HOME/rpmbuild/SPECS/{{ spec }}
     {% endif %}
 
     {% if srpm %}
     ADD {{ srpm }} /rpmbuild/SRPMS/{{ srpm }}
-    RUN chown -R root:root /rpmbuild/SRPMS
-    CMD rpmbuild --rebuild /rpmbuild/SRPMS/{{ srpm }}
+    RUN mv /rpmbuild/SRPMS/{{ srpm }} $HOME/rpmbuild/SRPMS/{{ srpm }}
+    RUN chown -R root:root $HOME/rpmbuild/SRPMS
+    CMD rpmbuild --rebuild $HOME/rpmbuild/SRPMS/{{ srpm }}
     {% endif %}
 
     """)
@@ -114,7 +116,7 @@ class Packager(object):
         exported = []
 
         for diff in client.diff(self.container):
-            if diff['Path'].startswith('/rpmbuild'):
+            if '/rpmbuild' in diff['Path']:
                 if diff['Path'].endswith('.rpm'):
                     directory, name = os.path.split(diff['Path'])
                     res = client.copy(self.container['Id'], diff['Path'])
