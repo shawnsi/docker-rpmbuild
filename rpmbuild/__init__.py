@@ -21,6 +21,7 @@ class PackagerContext(object):
 
     {% if sources_dir is not none %}
     ADD SOURCES /rpmbuild/SOURCES
+    RUN mv /rpmbuild/SOURCES/* $HOME/rpmbuild/SOURCES/
     {% endif %}
     {% for source in sources %}
     ADD {{ source }} /rpmbuild/SOURCES/{{ source }}.unpack
