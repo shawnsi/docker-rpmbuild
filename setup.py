@@ -13,6 +13,10 @@ setup(
         'docopt>=0.6.1',
         'Jinja2>=2.6',
     ],
+    setup_requires=[
+        'mock>=1.0.1',
+    ],
+    test_suite = 'tests',
     entry_points={
         'console_scripts': ['docker-rpmbuild=rpmbuild.build:main']
     },
