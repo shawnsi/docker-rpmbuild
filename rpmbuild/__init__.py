@@ -21,8 +21,8 @@ class PackagerContext(object):
     ADD SOURCES /rpmbuild/SOURCES
     {% endif %}
     {% for source in sources %}
-    ADD {{ source }} /rpmbuild/SOURCES/{{ source }}.unpack
-    RUN cd /rpmbuild/SOURCES/{{ source }}.unpack && tar czf /rpmbuild/SOURCES/{{ source }} .
+    ADD {{ source }} /rpmbuild/SOURCES/{{ source }}
+    RUN cd /rpmbuild/SOURCES; if [ -d {{ source }} ]; then mv {{ source }} {{ source }}.tmp; tar -C {{ source }}.tmp -czvf {{ source }} .; rm -r {{ source }}.tmp; fi
     RUN chown -R root:root /rpmbuild/SOURCES
     {% endfor %}
 
