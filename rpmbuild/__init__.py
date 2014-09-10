@@ -19,30 +19,27 @@ class PackagerContext(object):
 
     {% if sources_dir is not none %}
     ADD SOURCES /rpmbuild/SOURCES
-    RUN mv /rpmbuild/SOURCES/* $HOME/rpmbuild/SOURCES/
     {% endif %}
     {% for source in sources %}
     ADD {{ source }} /rpmbuild/SOURCES/{{ source }}.unpack
-    RUN cd /rpmbuild/SOURCES/{{ source }}.unpack && tar czf $HOME/rpmbuild/SOURCES/{{ source }} .
-    RUN chown -R root:root $HOME/rpmbuild/SOURCES
+    RUN cd /rpmbuild/SOURCES/{{ source }}.unpack && tar czf /rpmbuild/SOURCES/{{ source }} .
+    RUN chown -R root:root /rpmbuild/SOURCES
     {% endfor %}
 
     {% if spec %}
     ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
-    RUN mv /rpmbuild/SPECS/{{ spec }} $HOME/rpmbuild/SPECS/{{ spec }}
-    RUN chown -R root:root $HOME/rpmbuild/SPECS
-    RUN yum-builddep -y $HOME/rpmbuild/SPECS/{{ spec }}
+    RUN chown -R root:root /rpmbuild/SPECS
+    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
     {% if retrieve %}
-    RUN spectool -g -R -A $HOME/rpmbuild/SPECS/{{ spec }}
+    RUN spectool -g -R -A /rpmbuild/SPECS/{{ spec }}
     {% endif %}
-    CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba $HOME/rpmbuild/SPECS/{{ spec }}
+    CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
     {% endif %}
 
     {% if srpm %}
     ADD {{ srpm }} /rpmbuild/SRPMS/{{ srpm }}
-    RUN mv /rpmbuild/SRPMS/{{ srpm }} $HOME/rpmbuild/SRPMS/{{ srpm }}
-    RUN chown -R root:root $HOME/rpmbuild/SRPMS
-    CMD rpmbuild --rebuild $HOME/rpmbuild/SRPMS/{{ srpm }}
+    RUN chown -R root:root /rpmbuild/SRPMS
+    CMD rpmbuild --rebuild /rpmbuild/SRPMS/{{ srpm }}
     {% endif %}
 
     """)
@@ -137,7 +134,7 @@ class Packager(object):
         exported = []
 
         for diff in self.client.diff(self.container):
-            if '/rpmbuild' in diff['Path']:
+            if diff['Path'].startswith('/rpmbuild'):
                 if diff['Path'].endswith('.rpm'):
                     directory, name = os.path.split(diff['Path'])
                     res = self.client.copy(self.container['Id'], diff['Path'])
