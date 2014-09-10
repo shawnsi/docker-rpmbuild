@@ -3,7 +3,7 @@
 """Docker rpmbuild.
 
 Usage:
-    docker-packager build [--config=<file>]
+    docker-rpmbuild build [--config=<file>]
                           [--docker-base_url=<url>]
                           [--docker-timeout=<seconds>]
                           [--docker-version=<version>]
@@ -11,7 +11,7 @@ Usage:
                           (--source=<tarball>...|--sources-dir=<dir>)
                           (--spec=<file> [--retrieve] [--output=<path>]) 
                           <image>
-    docker-packager rebuild [--config=<file>]
+    docker-rpmbuild rebuild [--config=<file>]
                             [--docker-base_url=<url>]
                             [--docker-timeout=<seconds>]
                             [--docker-version=<version>]
