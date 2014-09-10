@@ -7,8 +7,6 @@ import tempfile
 from jinja2 import Template
 import docker
 
-client = docker.Client(timeout=600)
-
 
 class PackagerContext(object):
     # Hacking up the unintentional tarball unpack
@@ -118,8 +116,9 @@ class PackagerException(Exception):
 
 class Packager(object):
 
-    def __init__(self, context):
+    def __init__(self, context, docker_config):
         self.context = context
+        self.client = docker.Client(**dict(docker_config))
 
     def __enter__(self):
         self.context.setup()
@@ -137,11 +136,11 @@ class Packager(object):
         """
         exported = []
 
-        for diff in client.diff(self.container):
+        for diff in self.client.diff(self.container):
             if '/rpmbuild' in diff['Path']:
                 if diff['Path'].endswith('.rpm'):
                     directory, name = os.path.split(diff['Path'])
-                    res = client.copy(self.container['Id'], diff['Path'])
+                    res = self.client.copy(self.container['Id'], diff['Path'])
                     with open(os.path.join(output, name), 'wb') as f:
                         f.write(res.read()[512:])
                         exported.append(f.name)
@@ -154,7 +153,7 @@ class Packager(object):
 
     @property
     def image(self):
-        images = client.images(name=self.image_name)
+        images = self.client.images(name=self.image_name)
 
         if not images:
             raise PackagerException
@@ -162,7 +161,7 @@ class Packager(object):
         return images[0]
 
     def build_image(self):
-        return client.build(
+        return self.client.build(
             self.context.path,
             tag=self.image_name,
             stream=True
@@ -172,8 +171,9 @@ class Packager(object):
         """
         Build the RPM package on top of the provided image.
         """
-        self.container = client.create_container(self.image['Id'])
-        client.start(self.container)
-        return self.container, client.logs(self.container, stream=True)
+        self.container = self.client.create_container(self.image['Id'])
+        self.client.start(self.container)
+        return self.container, self.client.logs(self.container, stream=True)
+
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
