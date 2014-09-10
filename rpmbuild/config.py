@@ -1,5 +1,11 @@
-import ConfigParser
-from StringIO import StringIO
+# Python 2/3 Compatibility
+try:
+    from ConfigParser import ConfigParser
+    from StringIO import StringIO
+except ImportError:
+    from configparser import ConfigParser
+    from io import StringIO
+
 from collections import defaultdict
 import os
 
@@ -8,7 +14,7 @@ DEFAULT_TIMEOUT = '600'
 
 
 def read_config(config_file):
-    config = ConfigParser.ConfigParser()
+    config = ConfigParser()
     config.readfp(StringIO(config_file))
 
     section = 'docker'
@@ -22,7 +28,7 @@ def read_config(config_file):
             config_dict.update({'base_url': config.get(section, 'base_url')})
 
         # Remove None values.
-        config_dict = dict((k, v) for k, v in config_dict.iteritems() if v)
+        config_dict = dict((k, v) for k, v in config_dict.items() if v)
 
     return defaultdict(None, config_dict)
 
@@ -46,7 +52,7 @@ def get_docker_config(docopt_args):
         docker_config_overrides.update({'timeout': int(DEFAULT_TIMEOUT)})
 
     # Remove None values.
-    docker_config_overrides = dict((k, v) for k, v in docker_config_overrides.iteritems() if v)
+    docker_config_overrides = dict((k, v) for k, v in docker_config_overrides.items() if v)
 
     # Update docker config with overrides.
     docker_config.update(docker_config_overrides)
