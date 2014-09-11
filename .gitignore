@@ -2,3 +2,5 @@
 *.rpm
 *.pyc
 *.egg-info
+.tox
+.coverage
