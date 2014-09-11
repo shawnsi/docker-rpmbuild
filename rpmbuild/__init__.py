@@ -65,7 +65,7 @@ class PackagerContext(object):
 
         if not macrofiles:
             self.macrofiles = []
- 
+
         if sources_dir and os.path.exists(sources_dir):
             self.sources_dir = sources_dir
         else:
@@ -73,7 +73,7 @@ class PackagerContext(object):
 
         if image is None:
             raise PackagerException("Must provide base docker <image>")
- 
+
 
     def __str__(self):
         return self.spec or self.srpm
@@ -103,7 +103,7 @@ class PackagerContext(object):
         if self.sources_dir:
             shutil.copytree(self.sources_dir,
                             os.path.join(self.path, 'SOURCES'))
-        
+
         with open(self.dockerfile, 'w') as f:
             content = self.template.render(
                 image=self.image,
