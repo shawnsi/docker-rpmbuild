@@ -1,5 +1,4 @@
 from collections import defaultdict
-from tempfile import NamedTemporaryFile
 import unittest
 import mock
 from rpmbuild.config import read_config, get_docker_config, DEFAULT_TIMEOUT
@@ -9,7 +8,7 @@ class ConfigTestCase(unittest.TestCase):
     """Tests for config.py"""
 
     def setUp(self):
-        self.config_file = NamedTemporaryFile()
+        self.config_file = '/etc/docker.config'
 
         self.config_without_docker_section = """[foo]
 missing=docker-section
@@ -30,7 +29,7 @@ version=1.11
         ]
 
         self.docopt_with_only_config_file_without_timeout = {
-            '--config': self.config_file.name,
+            '--config': self.config_file,
             '--define': [],
             '--docker-base_url': None,
             '--docker-timeout': None,
@@ -76,12 +75,15 @@ version=1.11
                 'version': '0.11'
             })
 
-            config = get_docker_config(self.docopt_with_only_config_file_without_timeout)
+            with mock.patch('os.path.exists') as exists:
+                exists.return_value = True
+                config = get_docker_config(self.docopt_with_only_config_file_without_timeout)
+
             self.assertIsInstance(
                 config,
                 defaultdict,
                 '{0} file returns non defaultdict!'.format(config))
-            read_config_mock.assert_called_with(self.config_file.name)
+            read_config_mock.assert_called_with(self.config_file)
 
     def test_get_docker_config_insert_internal_default_if_no_timeout_is_given_either_as_docopt_argument_or_config(self):
         with mock.patch('rpmbuild.config.read_config') as read_config_mock:
@@ -144,6 +146,3 @@ version=1.11
 
             config = get_docker_config(docopt_with_timeout_and_with_config)
             self.assertEqual(config.get('timeout'), 48)
-
-    def tearDown(self):
-        self.config_file.close()
