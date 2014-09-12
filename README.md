@@ -1,6 +1,8 @@
 docker-rpmbuild
 ===============
 
+[![Build Status](https://travis-ci.org/shawnsi/docker-rpmbuild.png)](https://travis-ci.org/shawnsi/docker-rpmbuild)
+
 Builds RPMs inside a docker container.  A Dockerfile and build context are 
 dynamically generated to construct the RPM development environment.  Then
 `rpmbuild -ba` is executed and the RPM results are extracted.
