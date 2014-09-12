@@ -63,6 +63,9 @@ class PackagerContext(object):
             self.sources_dir = sources_dir
         else:
             self.sources_dir = None
+
+        if image is None:
+            raise PackagerException("Must provide base docker <image>")
  
 
     def __str__(self):
