@@ -9,7 +9,7 @@ Usage:
                           [--docker-version=<version>]
                           [--define=<option>...]
                           (--source=<tarball>...|--sources-dir=<dir>)
-                          (--spec=<file> [--retrieve] [--output=<path>]) 
+                          (--spec=<file> [--macrofile=<file>...] [--retrieve] [--output=<path>])
                           <image>
     docker-rpmbuild rebuild [--config=<file>]
                             [--docker-base_url=<url>]
@@ -27,6 +27,7 @@ Options:
     --sources-dir=<dir>  Directory containing resources required for spec.
     -r --retrieve        Fetch defined resources in spec file with spectool inside container
     --spec=<file>        RPM Spec file to build.
+    --macrofile=<file>   Defines added in a file, will reside together with SPECS/
     --srpm=<file>        SRPM to rebuild.
 
 Docker Options:
@@ -58,6 +59,7 @@ def main():
             sources=args['--source'],
             sources_dir=args['--sources-dir'],
             spec=args['--spec'],
+            macrofiles=args['--macrofile'],
             retrieve=args['--retrieve'],
         )
 

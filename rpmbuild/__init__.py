@@ -27,12 +27,15 @@ class PackagerContext(object):
     {% endfor %}
 
     {% if spec %}
+    {% for macrofile in macrofiles %}
+    ADD {{ macrofile }} /rpmbuild/SPECS/{{ macrofile }}
+    {% endfor %}
     ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
     RUN chown -R root:root /rpmbuild/SPECS
-    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
     {% if retrieve %}
     RUN spectool -g -R -A /rpmbuild/SPECS/{{ spec }}
     {% endif %}
+    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
     CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
     {% endif %}
 
@@ -45,10 +48,11 @@ class PackagerContext(object):
     """)
 
     def __init__(self, image, defines=None, sources=None, sources_dir=None,
-                 spec=None, retrieve=None, srpm=None):
+                 spec=None, macrofiles=None, retrieve=None, srpm=None):
         self.image = image
         self.defines = defines
         self.sources = sources
+        self.macrofiles = macrofiles
         self.spec = spec
         self.srpm = srpm
         self.retrieve = retrieve
@@ -58,6 +62,9 @@ class PackagerContext(object):
 
         if not sources:
             self.sources = []
+
+        if not macrofiles:
+            self.macrofiles = []
  
         if sources_dir and os.path.exists(sources_dir):
             self.sources_dir = sources_dir
@@ -84,6 +91,9 @@ class PackagerContext(object):
         for source in self.sources:
             shutil.copy(source, self.path)
 
+        for macrofile in self.macrofiles:
+            shutil.copy(macrofile, self.path)
+
         if self.spec:
             shutil.copy(self.spec, self.path)
 
@@ -101,6 +111,7 @@ class PackagerContext(object):
                 sources=[os.path.basename(s) for s in self.sources],
                 sources_dir=self.sources_dir,
                 spec=self.spec and os.path.basename(self.spec),
+                macrofiles=[os.path.basename(s) for s in self.macrofiles],
                 retrieve=self.retrieve,
                 srpm=self.srpm and os.path.basename(self.srpm),
             )
