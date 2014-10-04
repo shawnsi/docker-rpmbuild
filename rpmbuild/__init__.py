@@ -9,43 +9,6 @@ import docker
 
 
 class PackagerContext(object):
-    # Hacking up the unintentional tarball unpack
-    # https://github.com/dotcloud/docker/issues/3050
-    template = Template("""
-    FROM {{ image }}
-
-    RUN yum -y install rpmdevtools yum-utils tar
-    RUN rpmdev-setuptree
-
-    {% if sources_dir is not none %}
-    ADD SOURCES /rpmbuild/SOURCES
-    {% endif %}
-    {% for source in sources %}
-    ADD {{ source }} /rpmbuild/SOURCES/{{ source }}
-    RUN cd /rpmbuild/SOURCES; if [ -d {{ source }} ]; then mv {{ source }} {{ source }}.tmp; tar -C {{ source }}.tmp -czvf {{ source }} .; rm -r {{ source }}.tmp; fi
-    RUN chown -R root:root /rpmbuild/SOURCES
-    {% endfor %}
-
-    {% if spec %}
-    {% for macrofile in macrofiles %}
-    ADD {{ macrofile }} /rpmbuild/SPECS/{{ macrofile }}
-    {% endfor %}
-    ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
-    RUN chown -R root:root /rpmbuild/SPECS
-    {% if retrieve %}
-    RUN spectool -g -R -A /rpmbuild/SPECS/{{ spec }}
-    {% endif %}
-    RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
-    CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
-    {% endif %}
-
-    {% if srpm %}
-    ADD {{ srpm }} /rpmbuild/SRPMS/{{ srpm }}
-    RUN chown -R root:root /rpmbuild/SRPMS
-    CMD rpmbuild --rebuild /rpmbuild/SRPMS/{{ srpm }}
-    {% endif %}
-
-    """)
 
     def __init__(self, image, defines=None, sources=None, sources_dir=None,
                  spec=None, macrofiles=None, retrieve=None, srpm=None):
@@ -74,10 +37,50 @@ class PackagerContext(object):
         if image is None:
             raise PackagerException("Must provide base docker <image>")
 
+        # We do this so it's always easy to referrer to the generated Dockerfile in sphinx.
+        self.template = self._dockerfile()
 
     def __str__(self):
         return self.spec or self.srpm
 
+    def _dockerfile(self):
+        """Hacking up the unintentional tarball unpack
+        https://github.com/dotcloud/docker/issues/3050"""
+        return """
+            FROM {{ image }}
+
+            RUN yum -y install rpmdevtools yum-utils tar
+            RUN rpmdev-setuptree
+
+            {% if sources_dir is not none %}
+            ADD SOURCES /rpmbuild/SOURCES
+            {% endif %}
+            {% for source in sources %}
+            ADD {{ source }} /rpmbuild/SOURCES/{{ source }}
+            RUN cd /rpmbuild/SOURCES; if [ -d {{ source }} ]; then mv {{ source }} {{ source }}.tmp; tar -C {{ source }}.tmp -czvf {{ source }} .; rm -r {{ source }}.tmp; fi
+            RUN chown -R root:root /rpmbuild/SOURCES
+            {% endfor %}
+
+            {% if spec %}
+            {% for macrofile in macrofiles %}
+            ADD {{ macrofile }} /rpmbuild/SPECS/{{ macrofile }}
+            {% endfor %}
+            ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
+            RUN chown -R root:root /rpmbuild/SPECS
+            {% if retrieve %}
+            RUN spectool -g -R -A /rpmbuild/SPECS/{{ spec }}
+            {% endif %}
+            RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
+            CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
+            {% endif %}
+
+            {% if srpm %}
+            ADD {{ srpm }} /rpmbuild/SRPMS/{{ srpm }}
+            RUN chown -R root:root /rpmbuild/SRPMS
+            CMD rpmbuild --rebuild /rpmbuild/SRPMS/{{ srpm }}
+            {% endif %}
+
+            """
 
     def setup(self):
         """
