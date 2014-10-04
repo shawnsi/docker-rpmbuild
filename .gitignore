@@ -4,6 +4,6 @@
 *.egg-info
 .tox
 .coverage
-doc/_build
+docs/_build
 build
 dist
