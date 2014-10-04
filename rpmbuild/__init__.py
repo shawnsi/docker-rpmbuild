@@ -38,7 +38,7 @@ class PackagerContext(object):
             raise PackagerException("Must provide base docker <image>")
 
         # We do this so it's always easy to referrer to the generated Dockerfile in sphinx.
-        self.template = self._dockerfile()
+        self.template = Template(self._dockerfile())
 
     def __str__(self):
         return self.spec or self.srpm
