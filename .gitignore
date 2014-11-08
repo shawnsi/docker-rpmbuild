@@ -4,3 +4,6 @@
 *.egg-info
 .tox
 .coverage
+docs/_build
+build
+dist
