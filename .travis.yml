@@ -3,3 +3,8 @@ python:
   - "2.7"
 install: pip install tox
 script: tox
+after_script: ./gh-pages.sh
+env:
+  global:
+    - GH_REF: github.com/shawnsi/docker-rpmbuild.git
+    - secure: "F0e9S2CbS65iYt7iD5Jhqt7yCoka/+g3Za+F/zx5kOjUWK6u7tb9X2kjWNI8kjiLX34icR4LKKiPWBMKUmU4ieLq3ocO4BTM9nbWnR+X2Tp99UAiD0TNTz8iz88G30WyxW3MQt7PFRR53Odo1kl5SWDX0mXnm3xv8t+l1S35RDU="
