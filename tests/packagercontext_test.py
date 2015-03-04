@@ -79,8 +79,7 @@ class PackagerContextTestCase(unittest.TestCase):
             rmtree.assert_called_with('/context')
 
     def test_image_throws_packagerexception_if_empty(self):
-        with self.assertRaises(PackagerException):
-            PackagerContext(image=None)
+        self.assertRaises(PackagerException, PackagerContext, image=None)
 
     def test_defines_is_empty_list_if_not_provided(self):
         self.assertEqual(PackagerContext(image='foo').defines, [])
@@ -101,5 +100,5 @@ class PackagerContextTestCase(unittest.TestCase):
         self.file = '/root/magicfile.txt'
         with patch('os.path.exists') as exists_mock:
             exists_mock.return_value = False
-            self.assertIsNone(PackagerContext(image='foo', sources_dir=self.file).sources_dir,
+            self.assert_(PackagerContext(image='foo', sources_dir=self.file).sources_dir is None,
                               'Sources dir should not be set when os.path.exists says it does not')

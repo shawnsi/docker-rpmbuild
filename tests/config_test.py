@@ -48,18 +48,16 @@ version=1.11
     def test_read_config_is_defaultdict(self):
         for config in self.all_configs:
             config_dict = read_config(config)
-            self.assertIsInstance(
-                config_dict,
-                defaultdict,
+            self.assert_(isinstance(config_dict, defaultdict),
                 '{0} file returns non defaultdict!'.format(config))
 
     def test_read_config_returns_blank_config_when_missing_section(self):
         config = read_config(self.config_without_docker_section)
-        self.assertDictEqual(config, {}, 'config should be empty')
+        self.assertEqual(config, {}, 'config should be empty')
 
     def test_read_config_removes_none_values_from_config_dict(self):
         config = read_config(self.config_with_none_values)
-        self.assertDictEqual(dict(config), {'version': '1.11'},
+        self.assertEqual(dict(config), {'version': '1.11'},
                              'should strip away base_url')
 
     def test_read_config_timeout_is_int(self):
@@ -79,9 +77,7 @@ version=1.11
                 exists.return_value = True
                 config = get_docker_config(self.docopt_with_only_config_file_without_timeout)
 
-            self.assertIsInstance(
-                config,
-                defaultdict,
+            self.assert_(isinstance(config, defaultdict),
                 '{0} file returns non defaultdict!'.format(config))
             read_config_mock.assert_called_with(self.config_file)
 
