@@ -27,7 +27,7 @@ class PackagetTestCase(unittest.TestCase):
         context = PackagerContext.return_value
         context.__str__.return_value = 'foo'
         packager = Packager(context, {})
-        self.assertEqual(packager.image_name, 'rpmbuild-foo')
+        self.assertEqual(packager.image_name, 'rpmbuild_foo')
 
     def test_packager_image_with_matches(self, PackagerContext):
         context = PackagerContext.return_value
@@ -87,7 +87,7 @@ class PackagetTestCase(unittest.TestCase):
         packager = Packager(context, {})
         packager.client.build = MagicMock()
         packager.build_image()
-        packager.client.build.assert_called_with('/tmp', tag='rpmbuild-foo', stream=True)
+        packager.client.build.assert_called_with('/tmp', tag='rpmbuild_foo', stream=True)
 
     def test_packager_build_package(self, PackagerContext):
         context = PackagerContext.return_value
