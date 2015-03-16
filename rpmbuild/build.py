@@ -44,6 +44,8 @@ import json
 import os
 import sys
 
+is_py26 = (2, 6) <= sys.version_info < (2, 7)
+
 from docopt import docopt
 from rpmbuild import Packager, PackagerContext, PackagerException
 from rpmbuild.config import get_docker_config
@@ -72,7 +74,10 @@ def main():
     try:
         with Packager(context,  get_docker_config(args)) as p:
             for line in p.build_image():
-                parsed = json.loads(line.decode(encoding='UTF-8'))
+                if is_py26:
+                    parsed = json.loads(line.decode('UTF-8'))
+                else:
+                    parsed = json.loads(line.decode(encoding='UTF-8'))
                 if 'stream' not in parsed:
                     print(parsed)
                 else:
@@ -81,7 +86,10 @@ def main():
             container, logs = p.build_package()
 
             for line in logs:
-                print(line.decode(encoding='UTF-8').strip())
+                if is_py26:
+                    print(line.decode('UTF-8').strip())
+                else:
+                    print(line.decode(encoding='UTF-8').strip())
 
             for path in p.export_package(args['--output']):
                 print('Wrote: %s' % path)

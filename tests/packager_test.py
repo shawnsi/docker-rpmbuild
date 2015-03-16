@@ -41,8 +41,7 @@ class PackagetTestCase(unittest.TestCase):
         packager = Packager(context, {})
         packager.client = MagicMock()
         packager.client.images.return_value = []
-        with self.assertRaises(PackagerException):
-            packager.image
+        self.assertRaises(PackagerException, lambda: packager.image)
 
     def test_packager_export_package(self, PackagerContext):
         context = PackagerContext.return_value
