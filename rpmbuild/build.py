@@ -41,7 +41,6 @@ Docker Options:
 from __future__ import print_function
 
 import json
-import os
 import sys
 
 is_py26 = (2, 6) <= sys.version_info < (2, 7)

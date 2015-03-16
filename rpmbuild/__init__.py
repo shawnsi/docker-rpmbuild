@@ -163,7 +163,9 @@ class Packager(object):
 
     @property
     def image_name(self):
-        return 'rpmbuild-%s' % self.context
+        ## slashes are illegal in an image name; interpreted as a registry
+        ## dashes are also illegal
+        return 'rpmbuild_%s' % str(self.context).replace("/", "_")
 
     @property
     def image(self):
