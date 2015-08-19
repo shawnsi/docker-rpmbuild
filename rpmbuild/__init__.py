@@ -70,7 +70,7 @@ class PackagerContext(object):
             {% if retrieve %}
             RUN spectool -g -R -A /rpmbuild/SPECS/{{ spec }}
             {% endif %}
-            RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
+            RUN yum-builddep -y $(rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -bs /rpmbuild/SPECS/{{ spec }} | awk '{ print $2 }')
             CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
             {% endif %}
 
