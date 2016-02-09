@@ -1,6 +1,8 @@
 docker-rpmbuild
 ===============
 
+**This project has not been maintained for some time and does not work with recent docker version.  Please see https://github.com/alanfranz/docker-rpm-builder instead.**
+
 [![Build Status](https://travis-ci.org/shawnsi/docker-rpmbuild.png)](https://travis-ci.org/shawnsi/docker-rpmbuild)
 
 Builds RPMs inside a docker container.  A Dockerfile and build context are 
