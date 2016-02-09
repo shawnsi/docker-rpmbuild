@@ -1,0 +1,214 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Using configuration files &mdash; docker-rpmbuild 0.1.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="docker-rpmbuild 0.1.1 documentation" href="index.html"/>
+        <link rel="next" title="Dockerfile" href="dockerfile.html"/>
+        <link rel="prev" title="Command line options" href="run-arguments.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> docker-rpmbuild</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-rpm">From .rpm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-deb">From .deb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-source">From source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#build-from-spec">Build from SPEC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#build-from-srpm">Build from SRPM</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="run-arguments.html">Command line options</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Using configuration files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#options-for-configuring-the-rpmbuild-execution">Options for configuring the rpmbuild execution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#options-for-configuring-docker-client">Options for configuring docker client</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dockerfile.html">Dockerfile</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">docker-rpmbuild</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Using configuration files</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/configuration-files.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="using-configuration-files">
+<h1>Using configuration files<a class="headerlink" href="#using-configuration-files" title="Permalink to this headline">¶</a></h1>
+<p>To ease the repition and remembering all the <a class="reference internal" href="run-arguments.html"><em>Command line options</em></a>, it is
+possible to store these configuration options in a <tt class="docutils literal"><span class="pre">.dockerrpm</span></tt> file which
+resides together with either the <tt class="docutils literal"><span class="pre">.spec</span></tt> or <tt class="docutils literal"><span class="pre">.srpm</span></tt> file.</p>
+<p>There are currently two sections of configuration that is supported in <tt class="docutils literal"><span class="pre">.dockerrpm</span></tt>:</p>
+<ul class="simple">
+<li>rpmbuild</li>
+<li>docker</li>
+</ul>
+<p>The first one is for configuring details about which docker image to use as
+base, where to find source archive to unpack etc. The second section is
+configuration that will be passed directly to the <a class="reference external" href="https://pypi.python.org/pypi/docker-py">docker client api</a>. This could be details such as where
+to find the docker socket etc.</p>
+<p>The format of the configuration file is in <tt class="docutils literal"><span class="pre">.ini</span></tt> file format!</p>
+<div class="section" id="options-for-configuring-the-rpmbuild-execution">
+<h2>Options for configuring the rpmbuild execution<a class="headerlink" href="#options-for-configuring-the-rpmbuild-execution" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">define</span></tt> can be set multiple times in the config.</p>
+<p><tt class="docutils literal"><span class="pre">source</span></tt> can be set multiple times in the config.</p>
+<p><tt class="docutils literal"><span class="pre">sources_dir</span></tt> can be set instead of <tt class="docutils literal"><span class="pre">source</span></tt>. This is usally the <cite>SOURCES/</cite> directory in a default rpmdev build tree.</p>
+<p><tt class="docutils literal"><span class="pre">macrofile</span></tt> can be set multiple times in the config, and <cite>macrofiles</cite> will reside together with the <cite>spec</cite> file in <cite>SPECS/</cite></p>
+<p><tt class="docutils literal"><span class="pre">retrieve</span></tt> can be set to either true or false. If set to true this will trigger to run <cite>spectool</cite> to download the source(s) and patch(es) that are defined in the <cite>spec</cite> file.</p>
+<p><tt class="docutils literal"><span class="pre">output</span></tt> can be set where you want to extract the <cite>rpm</cite> and <cite>srpm</cite> files that has been built inside the docker container.</p>
+<p><tt class="docutils literal"><span class="pre">image</span></tt> is a docker image which will be used as a base building image.</p>
+<p>For further details, see <a class="reference internal" href="dockerfile.html"><em>Dockerfile</em></a></p>
+</div>
+<div class="section" id="options-for-configuring-docker-client">
+<h2>Options for configuring docker client<a class="headerlink" href="#options-for-configuring-docker-client" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">base_url</span></tt> is used for passing the information for where the docker server is
+hosted. Format is protocol+hostname+port.</p>
+<p><tt class="docutils literal"><span class="pre">version</span></tt> which API level the docker server is using.</p>
+<p><tt class="docutils literal"><span class="pre">timeout</span></tt> specifies the HTTP request timeout in seconds towards the docker
+server.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dockerfile.html" class="btn btn-neutral float-right" title="Dockerfile"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="run-arguments.html" class="btn btn-neutral" title="Command line options"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Shawn Siefkas.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
